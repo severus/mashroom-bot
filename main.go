@@ -197,6 +197,9 @@ func DetectIntentText(projectID, sessionID, text, languageCode string) ([]string
 	fulfillmentMessages := queryResult.GetFulfillmentMessages()
 	var out []string
 	for _, msg := range fulfillmentMessages {
+		if msg.GetText() == nil {
+			continue
+		}
 		out = append(out, msg.GetText().Text...)
 	}
 	return out, nil
