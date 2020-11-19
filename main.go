@@ -106,7 +106,7 @@ func processText(ctx context.Context, webhook bot.Update) error {
 	if err != nil {
 		return err
 	}
-	reply, err := DetectIntentText(
+	replies, err := DetectIntentText(
 		creds.ProjectID,
 		strconv.FormatInt(webhook.Message.Chat.ID, 10),
 		*webhook.Message.Text,
@@ -116,13 +116,15 @@ func processText(ctx context.Context, webhook bot.Update) error {
 		return err
 	}
 	client := bot.NewClient(botToken)
-	sent := client.SendMessage(
-		webhook.Message.Chat.ID,
-		reply,
-		bot.OptionsSendMessage{},
-	)
-	if !sent.Ok {
-		return fmt.Errorf("send message: %s", *sent.Description)
+	for _, reply := range replies {
+		sent := client.SendMessage(
+			webhook.Message.Chat.ID,
+			reply,
+			bot.OptionsSendMessage{},
+		)
+		if !sent.Ok {
+			return fmt.Errorf("send message: %s", *sent.Description)
+		}
 	}
 	return nil
 }
@@ -167,17 +169,17 @@ func processPhoto(ctx context.Context, webhook bot.Update) error {
 	return nil
 }
 
-func DetectIntentText(projectID, sessionID, text, languageCode string) (string, error) {
+func DetectIntentText(projectID, sessionID, text, languageCode string) ([]string, error) {
 	ctx := context.Background()
 
 	sessionClient, err := dialogflow.NewSessionsClient(ctx)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer sessionClient.Close()
 
 	if projectID == "" || sessionID == "" {
-		return "", errors.New(fmt.Sprintf("Received empty project (%s) or session (%s)", projectID, sessionID))
+		return nil, errors.New(fmt.Sprintf("Received empty project (%s) or session (%s)", projectID, sessionID))
 	}
 
 	sessionPath := fmt.Sprintf("projects/%s/agent/sessions/%s", projectID, sessionID)
@@ -188,12 +190,16 @@ func DetectIntentText(projectID, sessionID, text, languageCode string) (string, 
 
 	response, err := sessionClient.DetectIntent(ctx, &request)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	queryResult := response.GetQueryResult()
-	fulfillmentText := queryResult.GetFulfillmentText()
-	return fulfillmentText, nil
+	fulfillmentMessages := queryResult.GetFulfillmentMessages()
+	var out []string
+	for _, msg := range fulfillmentMessages {
+		out = append(out, msg.GetText().Text...)
+	}
+	return out, nil
 }
 
 func fileURL(fileID string) (string, error) {
