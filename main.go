@@ -160,12 +160,17 @@ func processPhoto(ctx context.Context, webhook bot.Update) error {
 		"agaricomycetes",
 		"medicinal mushroom",
 	})
+	labels = replace(labels, map[string]string{
+		"penny bun": "Boletus edulis",
+	})
 	text := strings.Join(labels, ", ")
-	//text, err = translateText(ctx, text)
-	//if err != nil {
-	//	// log error, send message with untranslated text
-	//	log.Println("error translating text:", err)
-	//}
+	log.Println("untranslated labels:", text)
+	text, err = translateText(ctx, text)
+	if err != nil {
+		// log error, send message with untranslated text
+		log.Println("error translating text:", err)
+	}
+	text = dedupe(text)
 	client := bot.NewClient(botToken)
 	sent := client.SendMessage(
 		webhook.Message.Chat.ID,
@@ -286,6 +291,29 @@ func filter(a, b []string) []string {
 		}
 	}
 	return c
+}
+
+func replace(a []string, m map[string]string) []string {
+	for i, s := range a {
+		s = strings.ToLower(s)
+		if v, ok := m[s]; ok {
+			a[i] = v
+		}
+	}
+	return a
+}
+
+func dedupe(s string) string {
+	m := make(map[string]struct{})
+	for _, s := range strings.Split(s, ", ") {
+		s = strings.ToLower(s)
+		m[s] = struct{}{}
+	}
+	a := make([]string, 0)
+	for k, _ := range m {
+		a = append(a, k)
+	}
+	return strings.Join(a, ", ")
 }
 
 func translateText(ctx context.Context, text string) (string, error) {
