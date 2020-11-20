@@ -1,2 +1,2 @@
-# mashroom-bot
-Telegram webhook from Mashroom bot running on Google Cloud Run
+# mushroom-bot
+Telegram webhook from Mushroom bot running on Google Cloud Run
