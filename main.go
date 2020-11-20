@@ -149,6 +149,7 @@ func processPhoto(ctx context.Context, webhook bot.Update) error {
 		if !sent.Ok {
 			return fmt.Errorf("send message: %s", *sent.Description)
 		}
+        return nil
 	}
 	text := strings.Join(labels, ", ")
 	text, err = translateText(ctx, text)
