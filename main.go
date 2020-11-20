@@ -151,7 +151,15 @@ func processPhoto(ctx context.Context, webhook bot.Update) error {
 		}
 		return nil
 	}
-	labels = filter(labels, []string{"fungus", "mushroom"})
+	labels = filter(labels, []string{
+		"fungus",
+		"mushroom",
+		"edible mushroom",
+		"agaricaceae",
+		"agaricus",
+		"agaricomycetes",
+		"medicinal mushroom",
+	})
 	text := strings.Join(labels, ", ")
 	//text, err = translateText(ctx, text)
 	//if err != nil {
@@ -263,9 +271,11 @@ func hasAny(what []string, where []string) bool {
 func filter(a, b []string) []string {
 	m := make(map[string]struct{})
 	for _, s := range b {
+		s = strings.ToLower(s)
 		m[s] = struct{}{}
 	}
 	keep := func(s string) bool {
+		s = strings.ToLower(s)
 		_, ok := m[s]
 		return !ok
 	}
