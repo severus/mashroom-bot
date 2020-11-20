@@ -1,5 +1,5 @@
 PROJECT_ID ?= $(shell gcloud config get-value project)
-SERVICE = mashroom-bot
+SERVICE = mushroom-bot
 BOT_TOKEN = TELEGRAM_BOT_TOKEN_HERE
 
 .PHONY: build
