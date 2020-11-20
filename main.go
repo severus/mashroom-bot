@@ -138,7 +138,7 @@ func processPhoto(ctx context.Context, webhook bot.Update) error {
 	if err != nil {
 		return fmt.Errorf("error detecting labels: %v", err)
 	}
-	if !hasAny([]string{"fungus", "mashroom"}, labels) {
+	if !hasAny([]string{"fungus", "mushroom"}, labels) {
 		client := bot.NewClient(botToken)
 		sent := client.SendMessage(
 			webhook.Message.Chat.ID,
@@ -149,14 +149,15 @@ func processPhoto(ctx context.Context, webhook bot.Update) error {
 		if !sent.Ok {
 			return fmt.Errorf("send message: %s", *sent.Description)
 		}
-        return nil
+		return nil
 	}
+	labels = filter(labels, []string{"fungus", "mushroom"})
 	text := strings.Join(labels, ", ")
-	text, err = translateText(ctx, text)
-	if err != nil {
-		// log error, send message with untranslated text
-		log.Println("error translating text:", err)
-	}
+	//text, err = translateText(ctx, text)
+	//if err != nil {
+	//	// log error, send message with untranslated text
+	//	log.Println("error translating text:", err)
+	//}
 	client := bot.NewClient(botToken)
 	sent := client.SendMessage(
 		webhook.Message.Chat.ID,
@@ -257,6 +258,24 @@ func hasAny(what []string, where []string) bool {
 		}
 	}
 	return false
+}
+
+func filter(a, b []string) []string {
+	m := make(map[string]struct{})
+	for _, s := range b {
+		m[s] = struct{}{}
+	}
+	keep := func(s string) bool {
+		_, ok := m[s]
+		return !ok
+	}
+	c := make([]string, 0)
+	for _, x := range a {
+		if keep(x) {
+			c = append(c, x)
+		}
+	}
+	return c
 }
 
 func translateText(ctx context.Context, text string) (string, error) {
