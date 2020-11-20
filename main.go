@@ -160,9 +160,6 @@ func processPhoto(ctx context.Context, webhook bot.Update) error {
 		"agaricomycetes",
 		"medicinal mushroom",
 	})
-	labels = replace(labels, map[string]string{
-		"penny bun": "Boletus edulis",
-	})
 	text := strings.Join(labels, ", ")
 	log.Println("untranslated labels:", text)
 	text, err = translateText(ctx, text)
@@ -170,6 +167,7 @@ func processPhoto(ctx context.Context, webhook bot.Update) error {
 		// log error, send message with untranslated text
 		log.Println("error translating text:", err)
 	}
+	text = strings.ReplaceAll(strings.ToLower(text), "пенни булочка", "белый гриб")
 	text = dedupe(text)
 	client := bot.NewClient(botToken)
 	sent := client.SendMessage(
